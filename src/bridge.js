@@ -106,6 +106,7 @@ export class Bridge {
     this.wsDelay = this.timings.reconnectMin;
     this.wsRetryAt = 0;
     this.lostLogged = false;
+    this.authFailures = 0;
     this.eventWindow = [];
     this.eventsDropped = false;
   }
@@ -132,6 +133,7 @@ export class Bridge {
     this.generation += 1;
     this.delay = this.timings.reconnectMin;
     this.wsDelay = this.timings.reconnectMin;
+    this.authFailures = 0;
     this.structure = undefined;
     this.version = undefined;
     // Nothing of the previous server survives a new configuration.
@@ -254,6 +256,7 @@ export class Bridge {
     const wasLost = this.status !== 'online' && this.lostLogged;
     this.status = 'online';
     this.delay = this.timings.reconnectMin;
+    this.authFailures = 0;
     this.lostLogged = false;
     this.logger.info(
       wasLost
@@ -289,7 +292,13 @@ export class Bridge {
     this.closeSession();
     await this.setConnectionStatus(false, STATUS.auth_failed);
     this.requestWidgetRefresh();
-    this.scheduleReconnect(generation, this.timings.authRetry);
+    // The first retry comes soon: right after a password change, calaos_server
+    // still slows down the address that failed (1 s, then doubling).
+    this.scheduleReconnect(
+      generation,
+      this.authFailures === 0 ? this.timings.reconnectMin : this.timings.authRetry,
+    );
+    this.authFailures += 1;
   }
 
   async unreachable(generation, err) {
