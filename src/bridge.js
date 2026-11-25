@@ -386,7 +386,11 @@ export class Bridge {
       await this.reload();
       return;
     }
-    await this.readStates(generation, this.addedIoIds());
+    // Polling reads every IO: the scene trigger covers the ones not added to Gladys too.
+    await this.readStates(
+      generation,
+      this.live ? this.addedIoIds() : [...this.inventory.ios.keys()],
+    );
   }
 
   /** Polling: try the WebSocket again. True when the bridge went live. */
@@ -464,7 +468,9 @@ export class Bridge {
     }
     const created = this.createdDevices();
     for (const io of this.inventory.ios.values()) {
-      this.applyState(io.id, io.state, { created });
+      // While polling, this read is one of the polls: a change starts the scene trigger.
+      const event = !this.live && this.states.has(io.id) ? 'poll' : false;
+      this.applyState(io.id, io.state, { created, event });
     }
   }
 
@@ -477,10 +483,17 @@ export class Bridge {
     }
     try {
       await this.gladys.publishDiscoveredDevices(devices);
+      if (this.discoveryFailing) {
+        this.discoveryFailing = false;
+        this.logger.info('Discovered devices sent again');
+      }
       return true;
     } catch (err) {
       this.structure = undefined;
-      this.logger.warn(`Discovered devices not sent: ${err.message}`);
+      if (!this.discoveryFailing) {
+        this.discoveryFailing = true;
+        this.logger.warn(`Discovered devices not sent: ${err.message}`);
+      }
       return false;
     }
   }

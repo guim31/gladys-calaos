@@ -282,7 +282,7 @@ test('while polling, a change read over HTTP starts the scene trigger once', asy
     timings: { ...FAST_TIMINGS, pollInterval: 30, wsRetryMax: 60_000 },
   });
   w.bridge.wsRetryAt = Number.MAX_SAFE_INTEGER;
-  await addDevice(w, 'io_bool');
+  // Not added to Gladys: the trigger covers it all the same.
   calaos.io('io_bool').state = 'true';
   await until(() => w.fake.sceneEvents.some((e) => e.data.io === 'io_bool'), {
     what: 'the scene event',
