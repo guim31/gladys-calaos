@@ -1,0 +1,252 @@
+{
+  "audio": [],
+  "cameras": [],
+  "home": [
+    {
+      "hits": "10",
+      "items": [
+        {
+          "gui_type": "light",
+          "id": "io_light",
+          "io_style": "light",
+          "io_type": "output",
+          "name": "Plafonnier",
+          "state": "false",
+          "type": "MqttOutputLight",
+          "var_type": "bool",
+          "visible": "true"
+        },
+        {
+          "gui_type": "light_dimmer",
+          "id": "io_dimmer",
+          "io_type": "output",
+          "name": "Applique",
+          "state": "0",
+          "type": "MqttOutputLightDimmer",
+          "var_type": "string",
+          "visible": "true"
+        },
+        {
+          "gui_type": "light_rgb",
+          "id": "io_rgb",
+          "io_type": "output",
+          "name": "Ruban",
+          "state": "0",
+          "type": "MqttOutputLightRGB",
+          "var_type": "string",
+          "visible": "true"
+        },
+        {
+          "gui_type": "shutter",
+          "id": "io_shutter",
+          "io_type": "output",
+          "name": "Volet baie",
+          "state": "false",
+          "type": "MqttOutputShutter",
+          "var_type": "string",
+          "visible": "true"
+        },
+        {
+          "gui_type": "temp",
+          "id": "io_temp",
+          "io_style": "temperature",
+          "io_type": "input",
+          "name": "Température salon",
+          "state": "21.37",
+          "type": "MqttInputTemp",
+          "value_warning": "false",
+          "var_type": "float",
+          "visible": "true"
+        },
+        {
+          "gui_type": "analog_in",
+          "id": "io_hum",
+          "io_type": "input",
+          "name": "Humidité",
+          "state": "55",
+          "type": "MqttInputAnalog",
+          "unit": "%",
+          "value_warning": "false",
+          "var_type": "float",
+          "visible": "true"
+        },
+        {
+          "gui_type": "switch",
+          "id": "io_switch",
+          "io_style": "switch",
+          "io_type": "input",
+          "name": "Bouton entrée",
+          "state": "false",
+          "type": "MqttInputSwitch",
+          "var_type": "bool",
+          "visible": "true"
+        },
+        {
+          "gui_type": "string_in",
+          "id": "io_str",
+          "io_type": "input",
+          "name": "Message",
+          "state": "",
+          "type": "MqttInputString",
+          "var_type": "string",
+          "visible": "true"
+        },
+        {
+          "gui_type": "analog_out",
+          "id": "io_aout",
+          "io_type": "output",
+          "name": "Consigne",
+          "state": "0",
+          "type": "MqttOutputAnalog",
+          "unit": "°C",
+          "var_type": "float",
+          "visible": "true"
+        }
+      ],
+      "name": "Salon",
+      "type": "lounge"
+    },
+    {
+      "hits": "5",
+      "items": [
+        {
+          "gui_type": "shutter_smart",
+          "id": "io_smart",
+          "io_type": "output",
+          "name": "Volet chambre",
+          "state": "stop 0",
+          "type": "KNXOutputShutterSmart",
+          "var_type": "string",
+          "visible": "true"
+        },
+        {
+          "gui_type": "light_dimmer",
+          "id": "io_knx_dimmer",
+          "io_type": "output",
+          "name": "Lampe chevet",
+          "state": "0",
+          "type": "KNXOutputLightDimmer",
+          "var_type": "string",
+          "visible": "true"
+        },
+        {
+          "gui_type": "light",
+          "id": "io_knx_light",
+          "io_type": "output",
+          "name": "Plafonnier",
+          "state": "false",
+          "type": "KNXOutputLight",
+          "var_type": "bool",
+          "visible": "true"
+        },
+        {
+          "gui_type": "switch_long",
+          "id": "io_long",
+          "io_type": "input",
+          "name": "Bouton chevet",
+          "state": "0",
+          "type": "KNXInputSwitchLongPress",
+          "var_type": "float",
+          "visible": "false"
+        },
+        {
+          "gui_type": "switch3",
+          "id": "io_triple",
+          "io_type": "input",
+          "name": "Bouton triple",
+          "state": "0",
+          "type": "KNXInputSwitchTriple",
+          "var_type": "float",
+          "visible": "false"
+        },
+        {
+          "gui_type": "switch",
+          "id": "io_door",
+          "io_style": "door",
+          "io_type": "input",
+          "name": "Fenêtre",
+          "state": "false",
+          "type": "MqttInputSwitch",
+          "var_type": "bool",
+          "visible": "true"
+        },
+        {
+          "gui_type": "analog_in",
+          "id": "io_power",
+          "io_style": "watt",
+          "io_type": "input",
+          "name": "Compteur",
+          "state": "0",
+          "type": "MqttInputAnalog",
+          "unit": "W",
+          "value_warning": "false",
+          "var_type": "float",
+          "visible": "true"
+        }
+      ],
+      "name": "Chambre",
+      "type": "bedroom"
+    },
+    {
+      "hits": "0",
+      "items": [
+        {
+          "gui_type": "var_bool",
+          "id": "io_bool",
+          "io_type": "inout",
+          "name": "Mode absence",
+          "rw": "false",
+          "state": "false",
+          "type": "InternalBool",
+          "var_type": "bool",
+          "visible": "true"
+        },
+        {
+          "gui_type": "var_int",
+          "id": "io_int",
+          "io_type": "inout",
+          "name": "Compteur",
+          "rw": "false",
+          "state": "0",
+          "type": "InternalInt",
+          "var_type": "float",
+          "visible": "true"
+        },
+        {
+          "gui_type": "var_string",
+          "id": "io_string",
+          "io_type": "inout",
+          "name": "Texte",
+          "rw": "false",
+          "state": "",
+          "type": "InternalString",
+          "var_type": "string",
+          "visible": "true"
+        },
+        {
+          "gui_type": "scenario",
+          "id": "io_scenario",
+          "io_type": "inout",
+          "name": "Tout éteindre",
+          "state": "false",
+          "type": "Scenario",
+          "var_type": "bool",
+          "visible": "true"
+        },
+        {
+          "gui_type": "var_bool",
+          "id": "io_hidden",
+          "io_type": "inout",
+          "name": "Caché",
+          "rw": "false",
+          "state": "false",
+          "type": "InternalBool",
+          "var_type": "bool",
+          "visible": "false"
+        }
+      ],
+      "name": "Maison",
+      "type": "misc"
+    }
+  ]
+}

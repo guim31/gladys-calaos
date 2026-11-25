@@ -1,0 +1,88 @@
+{
+  "note": "Captured from calaos_server 4.8.3 (ghcr.io/calaos/calaos_base) in Docker, IOs simulated over MQTT and KNX without a bus.",
+  "login": {
+    "data": {
+      "success": "true"
+    },
+    "msg": "login",
+    "msg_id": "1"
+  },
+  "get_server_info": {
+    "data": {
+      "capabilities": [
+        "camera_token",
+        "admin_relay",
+        "admin_events",
+        "console",
+        "camera_width",
+        "change_cred_closes_sessions"
+      ],
+      "protocol": "1",
+      "version": "4.8.3"
+    },
+    "msg": "get_server_info",
+    "msg_id": "2"
+  },
+  "events": [
+    {
+      "data": {
+        "data": {
+          "id": "io_smart",
+          "state": "down 49"
+        },
+        "event_raw": "io_changed id:io_smart state:down%2049",
+        "type": "3",
+        "type_str": "io_changed"
+      },
+      "msg": "event"
+    },
+    {
+      "data": {
+        "data": {
+          "id": "io_smart",
+          "state": "stop 50"
+        },
+        "event_raw": "io_changed id:io_smart state:stop%2050",
+        "type": "3",
+        "type_str": "io_changed"
+      },
+      "msg": "event"
+    },
+    {
+      "data": {
+        "data": {
+          "id": "io_door",
+          "state": "true"
+        },
+        "event_raw": "io_changed id:io_door state:true",
+        "type": "3",
+        "type_str": "io_changed"
+      },
+      "msg": "event"
+    },
+    {
+      "data": {
+        "data": {
+          "id": "io_power",
+          "state": "1234.5"
+        },
+        "event_raw": "io_changed id:io_power state:1234%2E5",
+        "type": "3",
+        "type_str": "io_changed"
+      },
+      "msg": "event"
+    },
+    {
+      "data": {
+        "data": {
+          "id": "io_temp",
+          "state": "21.37"
+        },
+        "event_raw": "io_changed id:io_temp state:21%2E37",
+        "type": "3",
+        "type_str": "io_changed"
+      },
+      "msg": "event"
+    }
+  ]
+}

@@ -1,177 +1,421 @@
 {
   "manifest_version": 1,
   "type": "device",
-  "name": "Demo Devices Template",
+  "name": "Calaos",
   "description": {
-    "en": "Starter template showing sensors, a switch, a dimmable light and a smart plug.",
-    "fr": "Template de démarrage : capteurs, interrupteur, lampe variable et prise connectée."
+    "en": "Calaos home automation in Gladys: lights, dimmers, shutters, sensors and scenarios, in local.",
+    "fr": "La domotique Calaos dans Gladys : lumières, variateurs, volets, capteurs et scénarios, en local.",
+    "de": "Calaos-Hausautomation in Gladys: Lampen, Dimmer, Rollläden, Sensoren und Szenarien, lokal.",
+    "es": "La domótica Calaos en Gladys: luces, reguladores, persianas, sensores y escenarios, en local."
   },
   "version": "1.0.0",
-  "docker_image": "ghcr.io/gladysassistant/integration-template-js:1.0.0",
+  "docker_image": "ghcr.io/guim31/gladys-calaos:1.0.0",
   "gladys_version": ">=5.1.0",
-  "cover_image": "https://raw.githubusercontent.com/GladysAssistant/integration-template-js/master/cover.png",
-  "categories": ["lighting", "security", "environment"],
-  "transports": ["local", "cloud"],
+  "cover_image": "https://raw.githubusercontent.com/guim31/gladys-calaos/main/cover.png",
+  "categories": ["protocols", "lighting", "climate"],
+  "transports": ["local"],
   "config_schema": [
     {
       "key": "intro",
       "type": "section",
-      "label": { "en": "Getting started", "fr": "Pour commencer" },
+      "label": {
+        "en": "Your Calaos IOs in Gladys",
+        "fr": "Vos IO Calaos dans Gladys",
+        "de": "Deine Calaos-IOs in Gladys",
+        "es": "Sus IO de Calaos en Gladys"
+      },
       "description": {
-        "en": "The demo weather station reads real data from the free Open-Meteo API: pick the coordinates to observe. No account, no API key.",
-        "fr": "La station météo de démonstration lit de vraies données via l'API gratuite Open-Meteo : choisissez les coordonnées à observer. Pas de compte, pas de clé d'API."
+        "en": "Gladys reads the rooms and IOs (inputs and outputs) of your calaos_server through its JSON API, on port 5454, and follows their changes live. Each IO then shows up in the Discovery tab: add the ones you want. Use the user name and password of the Calaos apps.",
+        "fr": "Gladys lit les pièces et les IO (entrées et sorties) de votre calaos_server par son API JSON, sur le port 5454, et suit leurs changements en direct. Chaque IO apparaît ensuite dans l'onglet Découverte : ajoutez celles que vous voulez. Utilisez le nom d'utilisateur et le mot de passe des applications Calaos.",
+        "de": "Gladys liest die Räume und IOs (Ein- und Ausgänge) deines calaos_server über seine JSON-API auf Port 5454 und verfolgt ihre Änderungen live. Jedes IO erscheint dann im Reiter Entdecken: Füge die gewünschten hinzu. Verwende Benutzername und Passwort der Calaos-Apps.",
+        "es": "Gladys lee las habitaciones y las IO (entradas y salidas) de su calaos_server mediante su API JSON, en el puerto 5454, y sigue sus cambios en directo. Cada IO aparece luego en la pestaña Descubrir: añada las que quiera. Use el nombre de usuario y la contraseña de las aplicaciones Calaos."
       },
       "links": [
         {
-          "url": "https://open-meteo.com/en/docs",
-          "label": { "en": "Open-Meteo documentation", "fr": "Documentation Open-Meteo" }
+          "url": "https://calaos.fr",
+          "label": {
+            "en": "Calaos",
+            "fr": "Calaos",
+            "de": "Calaos",
+            "es": "Calaos"
+          }
         }
       ]
     },
     {
-      "key": "latitude",
-      "type": "number",
-      "label": { "en": "Latitude", "fr": "Latitude" },
-      "description": {
-        "en": "Latitude used for the demo weather sensor.",
-        "fr": "Latitude utilisée par le capteur météo de démonstration."
+      "key": "url",
+      "type": "string",
+      "label": {
+        "en": "Address of calaos_server",
+        "fr": "Adresse de calaos_server",
+        "de": "Adresse von calaos_server",
+        "es": "Dirección de calaos_server"
       },
-      "placeholder": { "en": "e.g. 48.8566", "fr": "ex. 48.8566" },
-      "required": true,
-      "default": 48.8566,
-      "min": -90,
-      "max": 90
+      "description": {
+        "en": "Its IP address, and its port if it is not 5454, as seen from the Gladys machine. Not a .local name.",
+        "fr": "Son adresse IP, et son port s'il n'est pas 5454, vue depuis la machine de Gladys. Pas de nom en .local.",
+        "de": "IP-Adresse und Port, falls nicht 5454, von der Gladys-Maschine aus gesehen. Kein .local-Name.",
+        "es": "Su dirección IP, y su puerto si no es 5454, vista desde la máquina de Gladys. Sin nombre .local."
+      },
+      "placeholder": {
+        "en": "192.168.1.20:5454",
+        "fr": "192.168.1.20:5454",
+        "de": "192.168.1.20:5454",
+        "es": "192.168.1.20:5454"
+      },
+      "required": true
     },
     {
-      "key": "longitude",
-      "type": "number",
-      "label": { "en": "Longitude", "fr": "Longitude" },
-      "description": {
-        "en": "Longitude used for the demo weather sensor.",
-        "fr": "Longitude utilisée par le capteur météo de démonstration."
+      "key": "username",
+      "type": "string",
+      "label": {
+        "en": "User name",
+        "fr": "Nom d'utilisateur",
+        "de": "Benutzername",
+        "es": "Nombre de usuario"
       },
-      "placeholder": { "en": "e.g. 2.3522", "fr": "ex. 2.3522" },
       "required": true,
-      "default": 2.3522,
-      "min": -180,
-      "max": 180
+      "default": ""
     },
     {
-      "key": "unit",
+      "key": "password",
+      "type": "secret",
+      "label": {
+        "en": "Password",
+        "fr": "Mot de passe",
+        "de": "Passwort",
+        "es": "Contraseña"
+      },
+      "required": true
+    },
+    {
+      "key": "rooms",
+      "type": "string",
+      "label": {
+        "en": "Only the IOs of these rooms",
+        "fr": "Seulement les IO de ces pièces",
+        "de": "Nur die IOs dieser Räume",
+        "es": "Solo las IO de estas habitaciones"
+      },
+      "description": {
+        "en": "Calaos room names, separated by commas. Empty: every room.",
+        "fr": "Noms de pièces Calaos, séparés par des virgules. Vide : toutes les pièces.",
+        "de": "Calaos-Raumnamen, durch Kommas getrennt. Leer: alle Räume.",
+        "es": "Nombres de habitaciones de Calaos, separados por comas. Vacío: todas las habitaciones."
+      },
+      "placeholder": {
+        "en": "Salon, Cuisine",
+        "fr": "Salon, Cuisine",
+        "de": "Salon, Cuisine",
+        "es": "Salon, Cuisine"
+      },
+      "required": false,
+      "default": ""
+    },
+    {
+      "key": "include_hidden",
+      "type": "boolean",
+      "label": {
+        "en": "Also offer the hidden IOs",
+        "fr": "Proposer aussi les IO masquées",
+        "de": "Auch die ausgeblendeten IOs anbieten",
+        "es": "Ofrecer también las IO ocultas"
+      },
+      "description": {
+        "en": "IOs not visible in the Calaos apps (internal variables, technical outputs). Wall switches are always offered.",
+        "fr": "IO invisibles dans les applications Calaos (variables internes, sorties techniques). Les interrupteurs muraux sont toujours proposés.",
+        "de": "In den Calaos-Apps unsichtbare IOs (interne Variablen, technische Ausgänge). Wandschalter werden immer angeboten.",
+        "es": "IO no visibles en las aplicaciones Calaos (variables internas, salidas técnicas). Los interruptores de pared siempre se ofrecen."
+      },
+      "required": false,
+      "default": false
+    },
+    {
+      "key": "language",
       "type": "select",
-      "label": { "en": "Temperature unit", "fr": "Unité de température" },
-      "required": false,
-      "default": "celsius",
-      "options": [
-        { "value": "celsius", "label": { "en": "Celsius", "fr": "Celsius" } },
-        { "value": "fahrenheit", "label": { "en": "Fahrenheit", "fr": "Fahrenheit" } }
-      ]
-    },
-    {
-      "key": "poll_frequency",
-      "type": "number",
-      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
-      "description": {
-        "en": "How often sensors are polled, in seconds (one minute minimum).",
-        "fr": "Fréquence d'interrogation des capteurs, en secondes (une minute minimum)."
+      "label": {
+        "en": "Language of the feature names",
+        "fr": "Langue des noms de fonctionnalités",
+        "de": "Sprache der Funktionsnamen",
+        "es": "Idioma de los nombres de funciones"
       },
       "required": false,
-      "default": 300,
-      "min": 60,
-      "max": 3600
+      "default": "fr",
+      "options": [
+        {
+          "value": "en",
+          "label": {
+            "en": "English",
+            "fr": "Anglais",
+            "de": "Englisch",
+            "es": "Inglés"
+          }
+        },
+        {
+          "value": "fr",
+          "label": {
+            "en": "French",
+            "fr": "Français",
+            "de": "Französisch",
+            "es": "Francés"
+          }
+        },
+        {
+          "value": "de",
+          "label": {
+            "en": "German",
+            "fr": "Allemand",
+            "de": "Deutsch",
+            "es": "Alemán"
+          }
+        },
+        {
+          "value": "es",
+          "label": {
+            "en": "Spanish",
+            "fr": "Espagnol",
+            "de": "Spanisch",
+            "es": "Español"
+          }
+        }
+      ]
     }
   ],
   "actions": [
     {
-      "key": "test_weather",
-      "label": { "en": "Test the weather provider", "fr": "Tester le fournisseur météo" },
+      "key": "test_connection",
+      "label": {
+        "en": "Test the connection",
+        "fr": "Tester la connexion",
+        "de": "Verbindung testen",
+        "es": "Probar la conexión"
+      },
       "timeout_seconds": 30
-    },
-    {
-      "key": "identify",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "fields": [
-        {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
-        }
-      ]
     }
   ],
   "scene_triggers": [
     {
-      "key": "motion_detected",
-      "label": { "en": "Motion detected", "fr": "Mouvement détecté" },
+      "key": "io_changed",
+      "label": {
+        "en": "Calaos IO changed",
+        "fr": "IO Calaos modifiée",
+        "de": "Calaos-IO geändert",
+        "es": "IO de Calaos modificada"
+      },
       "description": {
-        "en": "A demo motion sensor saw a person or an animal move.",
-        "fr": "Un détecteur de démonstration a vu bouger une personne ou un animal."
+        "en": "An IO changed in Calaos (a light, a switch, a scenario, an internal variable…), even one not added to Gladys. Temperatures and measurements are left out.",
+        "fr": "Une IO a changé dans Calaos (une lumière, un interrupteur, un scénario, une variable interne…), même non ajoutée à Gladys. Températures et mesures exclues.",
+        "de": "Ein IO hat sich in Calaos geändert (Lampe, Schalter, Szenario, interne Variable…), auch ohne Gladys-Gerät. Temperaturen und Messwerte ausgenommen.",
+        "es": "Una IO cambió en Calaos (una luz, un interruptor, un escenario, una variable interna…), aunque no esté añadida a Gladys. Excepto temperaturas y medidas."
       },
       "fields": [
         {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Sensor", "fr": "Détecteur" }
+          "key": "name",
+          "type": "string",
+          "label": {
+            "en": "IO name (optional)",
+            "fr": "Nom de l'IO (facultatif)",
+            "de": "Name des IOs (optional)",
+            "es": "Nombre de la IO (opcional)"
+          },
+          "placeholder": {
+            "en": "Bouton entrée",
+            "fr": "Bouton entrée",
+            "de": "Bouton entrée",
+            "es": "Bouton entrée"
+          }
         },
         {
-          "key": "target",
-          "type": "multi_select",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" },
-          "options": [
-            { "value": "person", "label": { "en": "Person", "fr": "Personne" } },
-            { "value": "animal", "label": { "en": "Animal", "fr": "Animal" } }
-          ]
+          "key": "value",
+          "type": "string",
+          "label": {
+            "en": "New value (optional)",
+            "fr": "Nouvelle valeur (facultatif)",
+            "de": "Neuer Wert (optional)",
+            "es": "Nuevo valor (opcional)"
+          },
+          "placeholder": {
+            "en": "true",
+            "fr": "true",
+            "de": "true",
+            "es": "true"
+          }
         }
       ],
       "variables": [
         {
-          "key": "target",
+          "key": "io",
           "type": "string",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" }
+          "label": {
+            "en": "IO id",
+            "fr": "Identifiant de l'IO",
+            "de": "ID des IOs",
+            "es": "Identificador de la IO"
+          }
+        },
+        {
+          "key": "name",
+          "type": "string",
+          "label": {
+            "en": "IO name",
+            "fr": "Nom de l'IO",
+            "de": "Name des IOs",
+            "es": "Nombre de la IO"
+          }
+        },
+        {
+          "key": "room",
+          "type": "string",
+          "label": {
+            "en": "Room",
+            "fr": "Pièce",
+            "de": "Raum",
+            "es": "Habitación"
+          }
+        },
+        {
+          "key": "value",
+          "type": "string",
+          "label": {
+            "en": "New value",
+            "fr": "Nouvelle valeur",
+            "de": "Neuer Wert",
+            "es": "Nuevo valor"
+          }
+        },
+        {
+          "key": "previous_value",
+          "type": "string",
+          "label": {
+            "en": "Previous value",
+            "fr": "Valeur précédente",
+            "de": "Vorheriger Wert",
+            "es": "Valor anterior"
+          }
         }
       ]
     }
   ],
   "scene_actions": [
     {
-      "key": "identify_device",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "description": {
-        "en": "Make a device signal itself (the demo light blinks).",
-        "fr": "Fait se signaler un appareil (la lampe de démonstration clignote)."
+      "key": "start_scenario",
+      "label": {
+        "en": "Start a Calaos scenario",
+        "fr": "Lancer un scénario Calaos",
+        "de": "Calaos-Szenario starten",
+        "es": "Iniciar un escenario de Calaos"
       },
-      "timeout_seconds": 15,
+      "description": {
+        "en": "Starts a scenario of Calaos, by its name, even one not added to Gladys.",
+        "fr": "Lance un scénario de Calaos, par son nom, même non ajouté à Gladys.",
+        "de": "Startet ein Calaos-Szenario über seinen Namen, auch ohne Gladys-Gerät.",
+        "es": "Inicia un escenario de Calaos, por su nombre, aunque no esté añadido a Gladys."
+      },
+      "timeout_seconds": 30,
       "fields": [
         {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
+          "key": "scenario",
+          "type": "string",
+          "label": {
+            "en": "Scenario",
+            "fr": "Scénario",
+            "de": "Szenario",
+            "es": "Escenario"
+          },
+          "placeholder": {
+            "en": "Tout éteindre",
+            "fr": "Tout éteindre",
+            "de": "Tout éteindre",
+            "es": "Tout éteindre"
+          },
           "required": true
         }
-      ],
-      "outputs": [
+      ]
+    },
+    {
+      "key": "set_state",
+      "label": {
+        "en": "Send a value to a Calaos IO",
+        "fr": "Envoyer une valeur à une IO Calaos",
+        "de": "Wert an ein Calaos-IO senden",
+        "es": "Enviar un valor a una IO de Calaos"
+      },
+      "description": {
+        "en": "Sends a value as Calaos rules do: true, false, toggle, set 50, up, down, impulse 500…",
+        "fr": "Envoie une valeur comme les règles Calaos : true, false, toggle, set 50, up, down, impulse 500…",
+        "de": "Sendet einen Wert wie die Calaos-Regeln: true, false, toggle, set 50, up, down, impulse 500…",
+        "es": "Envía un valor como las reglas de Calaos: true, false, toggle, set 50, up, down, impulse 500…"
+      },
+      "timeout_seconds": 30,
+      "fields": [
         {
-          "key": "signalled",
-          "type": "boolean",
-          "label": { "en": "Device signalled", "fr": "Appareil signalé" }
+          "key": "io",
+          "type": "string",
+          "label": {
+            "en": "IO (name or id)",
+            "fr": "IO (nom ou identifiant)",
+            "de": "IO (Name oder ID)",
+            "es": "IO (nombre o identificador)"
+          },
+          "placeholder": {
+            "en": "Plafonnier",
+            "fr": "Plafonnier",
+            "de": "Plafonnier",
+            "es": "Plafonnier"
+          },
+          "required": true
+        },
+        {
+          "key": "value",
+          "type": "string",
+          "label": {
+            "en": "Value",
+            "fr": "Valeur",
+            "de": "Wert",
+            "es": "Valor"
+          },
+          "placeholder": {
+            "en": "toggle",
+            "fr": "toggle",
+            "de": "toggle",
+            "es": "toggle"
+          },
+          "required": true
         }
       ]
     }
   ],
   "widgets": [
     {
-      "key": "demo_status",
-      "label": { "en": "Demo status", "fr": "État de la démo" },
-      "description": {
-        "en": "Live temperature and plug power, plug connection and observed location.",
-        "fr": "Température et puissance en direct, connexion de la prise, position observée."
+      "key": "status",
+      "label": {
+        "en": "Calaos",
+        "fr": "Calaos",
+        "de": "Calaos",
+        "es": "Calaos"
       },
-      "icon": "activity",
-      "action_timeout_seconds": 15
+      "description": {
+        "en": "Connection to Calaos, live updates, IOs offered and added.",
+        "fr": "Connexion à Calaos, mises à jour en direct, IO proposées et ajoutées.",
+        "de": "Verbindung zu Calaos, Live-Aktualisierung, angebotene und hinzugefügte IOs.",
+        "es": "Conexión a Calaos, actualizaciones en directo, IO ofrecidas y añadidas."
+      },
+      "icon": "home",
+      "action_timeout_seconds": 30,
+      "settings": [
+        {
+          "key": "show_reload",
+          "type": "boolean",
+          "label": {
+            "en": "Show the button to read the IOs again",
+            "fr": "Afficher le bouton pour relire les IO",
+            "de": "Schaltfläche zum Neueinlesen der IOs anzeigen",
+            "es": "Mostrar el botón para volver a leer las IO"
+          },
+          "required": false,
+          "default": true
+        }
+      ]
     }
   ]
 }
