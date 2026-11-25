@@ -110,7 +110,8 @@ fahrenden intelligenten Rollladens.
   Fehlversuchen eine Minute.
 - **Aktualisierung: alle 30 s** im Widget: Der WebSocket von Calaos wird abgelehnt (ein Proxy
   dazwischen lässt ihn nicht durch). Gladys liest die Zustände alle 30 Sekunden über HTTP und
-  versucht den WebSocket regelmäßig erneut.
+  versucht den WebSocket regelmäßig erneut. Bis dahin gehen Tastendrücke verloren, und der
+  Szenen-Auslöser sieht nur die Änderungen, die beim nächsten Lesen noch bestehen.
 - **Ein IO fehlt**: Es ist in Calaos ausgeblendet (siehe Option), außerhalb der gewählten Räume
   oder von einer nicht importierten Art (**Verbindung testen** listet sie).
 

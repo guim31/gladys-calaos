@@ -62,8 +62,8 @@ test('a smart shutter: Calaos counts how CLOSED it is, Gladys how open', () => {
   assert.ok(position.throttle > 0, 'a moving shutter sends its position at every percent');
   const state = role(io, 'shutter');
   assert.deepEqual(
-    ['up 40', 'down 40', 'stop 40'].map((s) => state.read(s)),
-    [1, -1, 0],
+    ['up 40', 'down 40', 'stop 40', 'stop 0', 'stop 100'].map((s) => state.read(s)),
+    [1, -1, 0, 1, -1],
   );
 });
 

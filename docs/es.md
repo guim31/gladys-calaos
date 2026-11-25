@@ -110,7 +110,8 @@ persiana inteligente en movimiento.
   aplicaciones Calaos. Tras varios fallos, espere un minuto.
 - **Actualizaciones: cada 30 s** en el widget: el WebSocket de Calaos es rechazado (un proxy
   intermedio que no lo deja pasar). Gladys lee los estados por HTTP cada 30 segundos y vuelve a
-  intentar el WebSocket con regularidad.
+  intentar el WebSocket con regularidad. Mientras tanto, las pulsaciones de botones se pierden y el
+  disparador de escena solo ve los cambios que siguen presentes en la siguiente lectura.
 - **Falta una IO**: está oculta en Calaos (vea la opción), fuera de las habitaciones elegidas, o es
   de un tipo no importado (**Probar la conexión** las indica).
 

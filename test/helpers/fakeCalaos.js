@@ -70,6 +70,10 @@ export function createCalaos({ home = HOME } = {}) {
     wsRefused: false,
     password: PASSWORD,
     silent: false,
+    /** Milliseconds before get_server_info answers (an old server never does). */
+    infoDelay: 0,
+    /** Milliseconds before a socket closed by the client sees its close event. */
+    closeDelay: 0,
     http: [],
     ws: [],
     commands: [],
@@ -209,12 +213,22 @@ export function createCalaos({ home = HOME } = {}) {
         return;
       }
       const answer = run(message.msg, message.data ?? {});
-      if (answer !== undefined) {
+      if (answer !== undefined && message.msg === 'get_server_info' && fake.infoDelay > 0) {
+        setTimeout(() => reply(answer), fake.infoDelay);
+      } else if (answer !== undefined) {
         reply(answer);
       }
     }
 
     close() {
+      if (fake.closeDelay > 0 && !this.closedFlag) {
+        // A half-open connection: its close event arrives long after.
+        const delay = fake.closeDelay;
+        fake.sockets.delete(this);
+        this.loggedIn = false;
+        setTimeout(() => this.serverClose(), delay);
+        return;
+      }
       this.serverClose();
     }
 

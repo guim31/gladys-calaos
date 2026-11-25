@@ -107,7 +107,8 @@ it (use their device), nor the intermediate positions of a moving smart shutter.
   failures, wait a minute.
 - **Updates: every 30 s** in the widget: the WebSocket of Calaos is refused (a proxy in between
   that does not let it through). Gladys reads the states over HTTP every 30 seconds and tries the
-  WebSocket again regularly.
+  WebSocket again regularly. Meanwhile, button presses are missed and the scene trigger only sees
+  the changes still there at the next read.
 - **An IO is missing**: it is hidden in Calaos (see the option), outside the chosen rooms, or of a
   kind not imported (**Test the connection** lists them).
 

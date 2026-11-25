@@ -18,6 +18,7 @@ export function registerHandlers(gladys, deps = {}) {
 
   gladys.onConfigUpdated((config) => bridge.configure(config));
   gladys.onScanRequest(() => bridge.scan());
+  gladys.onPoll((device) => bridge.poll(device));
   gladys.onSetValue((device, feature, value) => bridge.setValue(device, feature, value));
   gladys.onDeviceCreated((device) => bridge.onDeviceCreated(device));
   gladys.onDeviceUpdated((device) => bridge.onDeviceCreated(device));

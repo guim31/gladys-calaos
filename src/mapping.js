@@ -99,6 +99,13 @@ const smartState = (state) => {
   if (parsed.motion === 'down') {
     return COVER.CLOSE;
   }
+  // Stopped at an end of its travel: open or closed, like a plain shutter.
+  if (parsed.closed <= 0) {
+    return COVER.OPEN;
+  }
+  if (parsed.closed >= 100) {
+    return COVER.CLOSE;
+  }
   return COVER.STOP;
 };
 

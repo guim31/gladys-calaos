@@ -112,7 +112,8 @@ intermédiaires d'un volet intelligent en mouvement.
   Calaos. Après plusieurs échecs, attendez une minute.
 - **Mises à jour : toutes les 30 s** dans le widget : la WebSocket de Calaos est refusée (un proxy
   intermédiaire qui ne la laisse pas passer). Gladys lit les états en HTTP toutes les 30 secondes
-  et réessaie la WebSocket régulièrement.
+  et réessaie la WebSocket régulièrement. En attendant, les appuis sur les boutons sont perdus et le
+  déclencheur de scène ne voit que les changements encore là à la lecture suivante.
 - **Une IO manque** : elle est masquée dans Calaos (voir l'option), hors des pièces choisies, ou
   d'un type non importé (**Tester la connexion** les liste).
 

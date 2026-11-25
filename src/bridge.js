@@ -134,6 +134,7 @@ export class Bridge {
     this.delay = this.timings.reconnectMin;
     this.wsDelay = this.timings.reconnectMin;
     this.authFailures = 0;
+    this.connectedOnce = false;
     this.structure = undefined;
     this.version = undefined;
     // Nothing of the previous server survives a new configuration.
@@ -252,36 +253,58 @@ export class Bridge {
       } catch {
         // An older calaos_server ignores this message: no version, nothing else lost.
       }
+      if (generation !== this.generation || session !== this.session) {
+        return;
+      }
     }
     const wasLost = this.status !== 'online' && this.lostLogged;
+    const first = !this.connectedOnce;
+    this.connectedOnce = true;
     this.status = 'online';
     this.delay = this.timings.reconnectMin;
     this.authFailures = 0;
     this.lostLogged = false;
-    this.logger.info(
-      wasLost
-        ? 'Calaos is back'
-        : `Connected to Calaos${this.version ? ` ${this.version}` : ''} (${this.live ? 'live' : 'polling over HTTP'})`,
-    );
+    const message = wasLost
+      ? 'Calaos is back'
+      : `Connected to Calaos${this.version ? ` ${this.version}` : ''} (${this.live ? 'live' : 'polling over HTTP'})`;
+    if (first || wasLost) {
+      this.logger.info(message);
+    } else {
+      // A WebSocket reopened at once: not worth a line at info level.
+      this.logger.debug(message);
+    }
     await this.setConnectionStatus(true);
+    if (generation !== this.generation) {
+      return;
+    }
     await this.loadHome(home);
-    this.startTicks();
+    if (generation !== this.generation) {
+      return;
+    }
+    this.startTicks(generation);
     this.requestWidgetRefresh();
   }
 
-  openSession(client, generation) {
-    return client.open({
+  /**
+   * Opens a WebSocket session whose events and close only count while it is
+   * THE session of the bridge: a late close of a replaced socket is ignored.
+   */
+  async openSession(client, generation) {
+    let session;
+    const current = () => generation === this.generation && session && session === this.session;
+    session = await client.open({
       onEvent: (event) => {
-        if (generation === this.generation) {
+        if (current()) {
           this.onCalaosEvent(event);
         }
       },
       onClose: () => {
-        if (generation === this.generation && this.live) {
+        if (current() && this.live) {
           this.lost(generation, new Error('WebSocket closed'));
         }
       },
     });
+    return session;
   }
 
   async authFailed(generation) {
@@ -336,10 +359,12 @@ export class Bridge {
     }, delay);
   }
 
-  startTicks() {
+  startTicks(generation) {
+    if (generation !== this.generation) {
+      return;
+    }
     this.timers.clearInterval(this.tickTimer);
     this.ticks = 0;
-    const generation = this.generation;
     this.tickTimer = this.timers.setInterval(
       () => {
         this.tick(generation).catch((err) => this.logger.debug(`Tick failed: ${err.message}`));
@@ -370,7 +395,8 @@ export class Bridge {
     try {
       session = await this.openSession(this.client, generation);
       const home = await session.request('get_home');
-      if (generation !== this.generation) {
+      // Meanwhile the connection may have been lost, reopened or reconfigured.
+      if (generation !== this.generation || this.status !== 'online' || this.live || this.session) {
         session.close();
         return false;
       }
@@ -379,7 +405,7 @@ export class Bridge {
       this.wsDelay = this.timings.reconnectMin;
       this.logger.info('Live updates from Calaos');
       await this.loadHome(home);
-      this.startTicks();
+      this.startTicks(generation);
       this.requestWidgetRefresh();
       return true;
     } catch {
@@ -418,8 +444,10 @@ export class Bridge {
       return;
     }
     const created = this.createdDevices();
+    // While polling, a change seen here is the only one there is: it starts the scene trigger.
+    const event = this.live ? false : 'poll';
     for (const [id, state] of Object.entries(states)) {
-      this.applyState(id, state, { created });
+      this.applyState(id, state, { created, event });
     }
   }
 
@@ -431,8 +459,7 @@ export class Bridge {
       externalIds: this.gladys.externalIds.bind(this.gladys),
     });
     const structure = JSON.stringify(this.inventory.devices);
-    if (structure !== this.structure) {
-      await this.publishDevices();
+    if (structure !== this.structure && (await this.publishDevices())) {
       this.structure = structure;
     }
     const created = this.createdDevices();
@@ -450,9 +477,11 @@ export class Bridge {
     }
     try {
       await this.gladys.publishDiscoveredDevices(devices);
+      return true;
     } catch (err) {
       this.structure = undefined;
       this.logger.warn(`Discovered devices not sent: ${err.message}`);
+      return false;
     }
   }
 
@@ -510,7 +539,7 @@ export class Bridge {
     this.states.set(id, state);
     const io = this.inventory.ios.get(id);
     if (event && io) {
-      this.sceneEvent(io, state, previous);
+      this.sceneEvent(io, state, previous, event === 'poll');
     }
     if (!created.has(this.inventory.deviceIds.get(id))) {
       return;
@@ -522,7 +551,7 @@ export class Bridge {
       }
       if (route.event) {
         // A press: sent each time, never merged with the previous one.
-        if (event) {
+        if (event === true) {
           this.gladys
             .publishState(route.featureId, value)
             .catch((err) => this.logger.debug(`Button press not sent: ${err.message}`));
@@ -551,7 +580,7 @@ export class Bridge {
     }
   }
 
-  sceneEvent(io, state, previous) {
+  sceneEvent(io, state, previous, polled = false) {
     if (NO_SCENE_EVENT.has(io.gui_type)) {
       return;
     }
@@ -559,7 +588,7 @@ export class Bridge {
     if (io.gui_type === 'shutter_smart' && !/^\s*stop\b/.test(state)) {
       return;
     }
-    if (state === previous && !PRESSES.has(io.gui_type)) {
+    if (state === previous && (polled || !PRESSES.has(io.gui_type))) {
       return;
     }
     const now = this.now();
@@ -625,6 +654,14 @@ export class Bridge {
       Promise.resolve()
         .then(() => this.gladys.requestWidgetRefresh(WIDGET_KEY))
         .catch(() => {});
+    }
+  }
+
+  /** onPoll, a fallback: the devices are published with should_poll false. */
+  async poll(device) {
+    const id = (device?.params ?? []).find((p) => p.name === 'calaos_id')?.value;
+    if (this.status === 'online' && id) {
+      await this.readStates(this.generation, [id]);
     }
   }
 
@@ -721,7 +758,8 @@ export class Bridge {
     });
     this.logger.info('Connection test passed');
     return testMessage({
-      version: this.version,
+      // The version is only known for the server connected now.
+      version: config.url === this.config.url ? this.version : undefined,
       ios: inventory.ios.size,
       offered: inventory.devices.length,
       skipped: inventory.skipped,

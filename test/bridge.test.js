@@ -246,3 +246,47 @@ test('a new configuration restarts on the new server', async (t) => {
   await w.fake.configUpdated(baseConfig({ url: 'http://192.0.2.20:5454' }));
   await until(() => w.bridge.status === 'online');
 });
+
+test('the late close of a replaced WebSocket does not drop the new one', async (t) => {
+  const w = await world(t);
+  w.calaos.closeDelay = 100;
+  w.bridge.lost(w.bridge.generation, new Error('watchdog'));
+  await until(() => w.bridge.status === 'online' && w.bridge.live, { what: 'reconnected' });
+  const session = w.bridge.session;
+  const logins = w.calaos.logins;
+  await new Promise((resolve) => setTimeout(resolve, 200));
+  assert.equal(w.bridge.session, session, 'same session');
+  assert.equal(w.calaos.logins, logins, 'no new login');
+});
+
+test('a configuration saved again while connecting wins over the stale connection', async (t) => {
+  const w = await world(t);
+  w.calaos.infoDelay = 80;
+  // A first save: its connection waits for get_server_info…
+  const pending = w.bridge.configure(baseConfig({ language: 'en' }));
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  // …while a second save empties the address.
+  await w.fake.configUpdated(baseConfig({ url: '' }));
+  await pending;
+  await new Promise((resolve) => setTimeout(resolve, 150));
+  assert.equal(w.bridge.status, 'not_configured');
+  assert.equal(w.bridge.tickTimer, undefined, 'no tick left running');
+  assert.equal(w.fake.connectionStatus.connected, false);
+});
+
+test('while polling, a change read over HTTP starts the scene trigger once', async (t) => {
+  const calaos = createCalaos();
+  calaos.wsRefused = true;
+  const w = await world(t, {
+    calaos,
+    timings: { ...FAST_TIMINGS, pollInterval: 30, wsRetryMax: 60_000 },
+  });
+  w.bridge.wsRetryAt = Number.MAX_SAFE_INTEGER;
+  await addDevice(w, 'io_bool');
+  calaos.io('io_bool').state = 'true';
+  await until(() => w.fake.sceneEvents.some((e) => e.data.io === 'io_bool'), {
+    what: 'the scene event',
+  });
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  assert.equal(w.fake.sceneEvents.filter((e) => e.data.io === 'io_bool').length, 1);
+});
