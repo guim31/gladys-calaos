@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-25
+
 ### Added
 
 - The rooms and IOs of a Calaos server in the Discovery tab, one device per
@@ -26,4 +28,5 @@ the notes of the version's GitHub Release.
 - A "Test the connection" action, room filter, hidden IOs option, feature
   names in English, French, German or Spanish.
 
-[Unreleased]: https://github.com/guim31/gladys-calaos/commits/main
+[Unreleased]: https://github.com/guim31/gladys-calaos/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/guim31/gladys-calaos/releases/tag/v1.0.0
