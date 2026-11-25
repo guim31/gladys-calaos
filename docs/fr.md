@@ -1,67 +1,130 @@
-# Template de démonstration
+# Calaos
 
-Ceci est la documentation utilisateur de l'intégration. Gladys ré-héberge ce
-fichier et affiche un lien **Documentation** permanent vers lui dans l'écran
-de configuration (dans la langue de l'utilisateur, avec l'anglais en repli) —
-c'est au moment de configurer que l'utilisateur en a le plus besoin. Gardez
-les courtes indications d'accueil dans les blocs `section` du `config_schema`
-du manifest ; mettez ici le pas-à-pas détaillé (captures d'écran, dépannage…).
+Amène dans Gladys les pièces et les IO de votre serveur domotique [Calaos](https://calaos.fr) :
+lumières, variateurs, lumières de couleur, volets, capteurs, interrupteurs muraux, variables
+internes et scénarios. Gladys parle à `calaos_server` sur votre réseau local, par l'API JSON
+qu'utilisent les applications Calaos, et reçoit chaque changement en direct.
 
-## Ce que vous obtenez
+Testée contre un vrai `calaos_server` 4.8.3, avec des IO simulées, pas sur une installation avec
+du vrai matériel Wago, KNX ou 1-Wire : vos retours sont les bienvenus sur le forum.
 
-Six appareils de démonstration apparaissent après l'installation : une
-station météo (vraies données Open-Meteo), un interrupteur, une lampe
-variable, une prise connectée avec mesure de puissance, un détecteur de
-mouvement et une caméra.
+## Prérequis
+
+- Un serveur Calaos (Calaos OS, ou le conteneur `calaos_base`) joignable depuis la machine de
+  Gladys.
+- Le nom d'utilisateur et le mot de passe des applications Calaos (Calaos Home, l'application
+  web).
+- Gladys 5.1 ou plus récent.
 
 ## Configuration
 
-1. Ouvrez l'onglet **Configuration** de l'intégration.
-2. Renseignez la **latitude** et la **longitude** que la station météo de
-   démonstration doit observer (Paris par défaut), et choisissez votre unité
-   de température. L'**intervalle de rafraîchissement** règle la fréquence
-   de lecture de la station météo et de la puissance de la prise : toutes
-   les 5 minutes par défaut, toutes les minutes au plus.
-3. Enregistrez : les appareils apparaissent dans l'onglet **Découverte**,
-   prêts à être ajoutés.
+### Adresse
 
-Le réglage **Préférer la connexion locale** pilote la prise de
-démonstration : elle affiche en badge le canal réellement utilisé (local ou
-cloud), avec un point orange quand elle fonctionne en mode dégradé (local
-refusé, bascule cloud).
+L'adresse IP du serveur Calaos, vue depuis Gladys : `192.168.1.20`. Le port 5454 est ajouté si
+vous n'en donnez pas ; sinon, indiquez `192.168.1.20:5454` ou `http://192.168.1.20:5454`. Utilisez
+le port de `calaos_server` lui-même, pas le port HTTPS de l'application web : Gladys n'accepte pas
+le certificat autosigné d'une box Calaos.
 
-## Actions
+### Nom d'utilisateur et mot de passe
 
-- **Tester le fournisseur météo** — effectue une requête en direct vers
-  Open-Meteo et affiche la température et l'humidité actuelles sous le
-  bouton.
-- **Identifier un appareil** — choisissez un de vos appareils dans la liste
-  et il se signale (la lampe de démonstration « clignote » dans les logs).
+Ceux des applications Calaos. Après un mauvais mot de passe, Calaos ralentit un moment chaque
+nouvel essai venant de la même adresse (jusqu'à une minute) : Gladys réessaie quelques secondes
+plus tard, puis chaque minute.
 
-## Scènes
+### Choisir ce qui est importé
 
-L'intégration ajoute ses propres cartes à l'éditeur de scènes (Gladys 5.1
-ou plus récent), dans la catégorie **Intégrations** :
+Chaque IO de chaque pièce est proposée dans l'onglet **Découverte** de l'intégration : ajoutez
+celles que vous voulez. **Seulement les IO de ces pièces** garde les pièces que vous listez (noms
+de pièces Calaos, séparés par des virgules).
 
-- **Mouvement détecté** (déclencheur) — lance la scène quand un détecteur
-  de démonstration voit bouger quelque chose. Choisissez éventuellement le
-  détecteur et ce qui a bougé (personne, animal) ; laissés vides, toute
-  détection correspond. Les actions suivantes peuvent lire ce qui a bougé
-  avec `{{triggerEvent.data.target}}`.
-- **Identifier un appareil** (action) — fait se signaler l'appareil choisi.
-  Elle indique si l'appareil a pu se signaler, pour que les actions
-  suivantes puissent en dépendre.
+Les IO masquées dans les applications Calaos (variables internes, sorties techniques) ne sont
+proposées qu'avec **Proposer aussi les IO masquées**. Les interrupteurs et boutons muraux sont
+toujours proposés, car Calaos les masque par défaut.
 
-## Tableau de bord
+### Langue
 
-Ajoutez le widget **État de la démo** à un tableau de bord : il affiche en
-direct la température de la station météo et la puissance de la prise du
-bureau, la connexion utilisée par la prise (en orange si dégradée) et la
-position observée. Son bouton **Identifier la lampe** fait se signaler la
-lampe de démonstration.
+**Langue des noms de fonctionnalités** choisit la langue des noms que Gladys donne aux
+fonctionnalités (Marche/arrêt, Luminosité…), à l'ajout de l'appareil.
+
+## Ce que vous obtenez
+
+### Appareils
+
+Un appareil Gladys par IO Calaos, nommé d'après l'IO et sa pièce :
+
+| IO Calaos                              | Dans Gladys                                                           |
+| -------------------------------------- | --------------------------------------------------------------------- |
+| Lumière                                | lumière, marche/arrêt                                                 |
+| Variateur                              | lumière, marche/arrêt et luminosité                                   |
+| Lumière de couleur (RGB)               | lumière, marche/arrêt et couleur                                      |
+| Volet                                  | volet, ouvrir / stop / fermer                                         |
+| Volet intelligent                      | volet, ouvrir / stop / fermer et position (100 % = ouvert)            |
+| Température                            | capteur de température (°C)                                           |
+| Entrée analogique                      | le capteur de son style ou de son unité : humidité, pression, lux, W… |
+| Interrupteur, porte, mouvement, fumée… | entrée, ou le détecteur de son style (ouverture, mouvement, fuite…)   |
+| Interrupteurs appui long et triple     | bouton : clic, clic long, double et triple clic                       |
+| Booléen interne                        | commutateur                                                           |
+| Texte interne, entrée texte            | texte                                                                 |
+| Scénario                               | bouton poussoir qui le lance                                          |
+
+Non importés : sorties analogiques, nombres internes, plages horaires, minuteries, caméras,
+lecteurs audio et amplis. **Tester la connexion** liste ce qui a été laissé de côté. Une entrée
+analogique dont Gladys ne connaît pas l'unité (ou un pourcentage sans le style humidité) est aussi
+laissée de côté : choisissez son style dans Calaos Installer.
+
+Les états arrivent en direct, quelques centièmes de seconde après le changement. Les mesures sont
+envoyées au plus toutes les 10 secondes, la position d'un volet intelligent en mouvement toutes les
+2 secondes.
+
+### Widget du tableau de bord
+
+**Calaos** : la connexion, la version de Calaos, mises à jour en direct ou par interrogation, les
+IO proposées et ajoutées, et un bouton pour relire la liste des IO (masquable dans les réglages du
+widget).
+
+### Déclencheur de scène
+
+**IO Calaos modifiée** : une IO a changé dans Calaos, même non ajoutée à Gladys (un bouton, un
+scénario, une variable interne). Filtrez sur le nom de l'IO et la nouvelle valeur ; les variables
+donnent l'identifiant, le nom, la pièce, la nouvelle et l'ancienne valeur. Les températures et les
+entrées analogiques ne le déclenchent pas (utilisez leur appareil), ni les positions
+intermédiaires d'un volet intelligent en mouvement.
+
+### Actions de scène
+
+- **Lancer un scénario Calaos**, par son nom, même non ajouté à Gladys.
+- **Envoyer une valeur à une IO Calaos**, comme le font les règles Calaos : `true`, `false`,
+  `toggle`, `set 50`, `up`, `down`, `stop`, `impulse 500`, `set #FF8000`… L'IO est son nom, ou son
+  identifiant quand deux IO portent le même nom (le message d'erreur donne les identifiants).
+
+## Exemples de scènes
+
+- Quand le bouton « Porte d'entrée » reçoit un appui long, lancer le scénario Calaos « Départ ».
+- Quand Gladys ne détecte plus personne à la maison, envoyer `true` à la variable interne « Mode
+  absence » qu'utilisent vos règles Calaos.
+- Quand l'IO Calaos « Sonnette » passe à `true`, envoyer un message Telegram.
 
 ## Dépannage
 
-L'intégration journalise tout ce qu'elle fait : consultez les logs de
-l'intégration depuis l'interface Gladys (ou `docker logs` sur l'hôte) avec
-`LOG_LEVEL=debug` pour le détail complet.
+- **Calaos ne répond pas** : vérifiez l'adresse et le port (5454) depuis la machine de Gladys, et
+  que `calaos_server` tourne.
+- **Connexion refusée** : vérifiez le nom d'utilisateur et le mot de passe dans les applications
+  Calaos. Après plusieurs échecs, attendez une minute.
+- **Mises à jour : toutes les 30 s** dans le widget : la WebSocket de Calaos est refusée (un proxy
+  intermédiaire qui ne la laisse pas passer). Gladys lit les états en HTTP toutes les 30 secondes
+  et réessaie la WebSocket régulièrement. En attendant, les appuis sur les boutons sont perdus et le
+  déclencheur de scène ne voit que les changements encore là à la lecture suivante.
+- **Une IO manque** : elle est masquée dans Calaos (voir l'option), hors des pièces choisies, ou
+  d'un type non importé (**Tester la connexion** les liste).
+
+## Limites
+
+- Ni thermostat, ni lecteur audio, ni caméra, ni ampli.
+- Un interrupteur de porte ou de fenêtre est lu comme ouvert quand Calaos dit `true`.
+- Un volet simple n'a pas de position : son état passe à fermé à la fin de son temps de course.
+- Les commandes passent par `set_state` : Calaos les accepte ou les refuse, sans dire pourquoi.
+
+## Confidentialité
+
+Tout reste sur votre réseau local : Gladys ne parle qu'à votre serveur Calaos. Le mot de passe est
+gardé par Gladys, jamais écrit dans les journaux.

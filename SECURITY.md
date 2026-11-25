@@ -30,6 +30,13 @@ Gladys before reporting a problem.
 
 In scope: the code of this repository and the Docker image it publishes.
 
+The integration stores nothing in `/data`. Its configuration (address, user
+name, password of the Calaos server) is kept by Gladys and given to the
+container; the password is sent to the Calaos server only, on every HTTP
+request and at the WebSocket login, and never written to the logs. It only
+talks to the address you configure, on your local network: use plain HTTP to
+`calaos_server` on a network you trust, as the Calaos apps do.
+
 Out of scope: Gladys Assistant itself (see its
 [security policy](https://github.com/GladysAssistant/Gladys/security/policy)),
-and the third-party services and devices the integration talks to.
+and Calaos and the devices it drives.

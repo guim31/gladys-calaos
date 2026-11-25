@@ -1,8 +1,8 @@
 {
-  "name": "gladys-integration-template-js",
+  "name": "gladys-calaos",
   "version": "1.0.0",
   "private": true,
-  "description": "Official starter template to build an external integration for Gladys Assistant with the JavaScript SDK.",
+  "description": "Gladys Assistant external integration for Calaos: import its IOs into Gladys and control them through the calaos_server JSON API and its live events.",
   "type": "module",
   "main": "index.js",
   "scripts": {

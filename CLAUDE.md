@@ -16,8 +16,8 @@ its only runtime dependency. It started from the official JavaScript template.
 ```bash
 npm install
 npm test                                  # node --test, the built-in runner
-node --test test/devices.test.js          # one file
-node --test --test-name-pattern "plug"    # tests whose name matches
+node --test test/bridge.test.js           # one file
+node --test --test-name-pattern "shutter" # tests whose name matches
 npm run lint                              # ESLint
 npm run format:check                      # Prettier, as the CI runs it
 npm run format                            # Prettier, fix in place
@@ -32,15 +32,19 @@ pushing.
 
 ```
 index.js                          SDK wiring only: handlers registered before connect()
-src/devices/index.js              registry of the device blueprints + dispatch helpers
-src/devices/<type>.js             one device type per file (buildDevice, onPoll, onSetValue...)
-src/scenes.js                     scene action handlers (manifest `scene_actions`)
-src/widgets.js                    dashboard widget handlers (manifest `widgets`)
+src/app.js                        every handler of the manifest, on the bridge
+src/bridge.js                     the Calaos connection: inventory, live events, polling, commands
+src/calaos/client.js              JSON API of calaos_server: HTTP (fetch) and WebSocket sessions
+src/mapping.js                    Calaos IO -> Gladys features, read and write, inventory (pure)
+src/publisher.js                  states sent to Gladys within 250 per minute, 12 h heartbeat
+src/scenes.js                     scene actions start_scenario and set_state
+src/widgets.js                    dashboard widget `status`
+src/texts.js                      every text of the container, in four languages
 src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
-src/weather.js                    example driver (Open-Meteo)
 gladys-assistant-integration.json manifest: name, config_schema, actions, image...
-docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
-test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
+docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys (en and fr mandatory)
+test/                             node --test, against the SDK's fake Gladys and a fake calaos_server
+test/fixtures/calaos/             get_home and WebSocket messages of a real calaos_server 4.8.3
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
 
@@ -58,8 +62,8 @@ test/                             node --test, against the SDK's fake Gladys (in
   one, `0`/`0` for a feature without a range (text, image...). A missing one
   can pass the publication on a core that does not check it, then fail when
   the user clicks "Add" (HTTP 422 `t_device_feature.min cannot be null`). The
-  SDK's fake Gladys refuses it on publication, and `test/devices.test.js`
-  checks them.
+  SDK's fake Gladys refuses it on publication, and
+  `test/gladys-rules.test.js` checks them.
 - **The container rootfs is read-only.** Write only under `/data`, the one
   writable volume. Never log tokens, passwords or API keys.
 - **Versions belong to the Release workflow** (Actions → Release). Never edit
@@ -78,8 +82,10 @@ test/                             node --test, against the SDK's fake Gladys (in
   `type: "provider"`: 5.1.0). `test/manifest.test.js` ties the manifest to the
   code (defaults, action, scene and widget handlers): change both sides
   together.
-- **User-facing text** is bilingual (English and French): action messages,
-  manifest texts, and `docs/en.md` / `docs/fr.md`, kept in sync.
+- **User-facing text** is in four languages (English, French, German with
+  "du", Spanish with "usted"): action messages, manifest texts, feature names,
+  widget, and `docs/{en,fr,de,es}.md` with the same sections.
+  `test/i18n.test.js` checks it.
 - **Style.** Prettier formats, ESLint catches mistakes. Comments explain why,
   in English. Tests never touch the network.
 
@@ -259,3 +265,33 @@ long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store exige 
 - Docs `en`, `fr`, `de`, `es` avec les mêmes sections.
 - Chauffe, ouverture, sécurité : ne rien rendre pilotable « comme un thermostat » ou par un assistant
   vocal quand une erreur serait dangereuse (leçon d'OctoPrint).
+
+## Calaos (propre à cette intégration)
+
+Vérifié contre `calaos_server` 4.8.3 (`ghcr.io/calaos/calaos_base`, `/opt/bin/calaos_server`, `CALAOS_CONFIG=<dossier>`
+avec `io.xml` et `local_config.xml`) en Docker, IO simulées par MQTT (Mosquitto) et par KNX sans bus, et l'intégration
+lancée dans son conteneur verrouillé contre ce serveur. La doc la plus fiable est `docs/08_http_api.md` et
+`docs/10_events_notifications.md` de `calaos_base` (écrites depuis le code).
+
+- **Deux formes de requête** : HTTP `POST /api` avec `action`, `cn_user`, `cn_pass` et les arguments **à la racine** ;
+  WebSocket `/api` avec `msg`, `msg_id` et les arguments **sous `data`**. Se tromper de forme ne donne aucune erreur,
+  seulement une réponse vide. Tout scalaire est une chaîne (`"true"`, `"21.5"`).
+- **WebSocket** : tout message avant `login` est ignoré en silence ; un login refusé répond `success: "false"` puis
+  ferme. `set_state` **ne répond rien sans `msg_id`**. Un message inconnu ne reçoit aucune réponse. Les événements
+  arrivent sans `msg_id` : `{ msg: "event", data: { type_str, data: { id, state } } }`.
+- **HTTP** : identifiants refusés → 400 sans corps JSON et connexion fermée. Un limiteur par adresse retarde chaque
+  échec (1 s, doublé jusqu'à 60 s) : même le bon mot de passe est refusé juste après un échec, d'où une première
+  relance après 5 s seulement.
+- **`get_home`** : `home[]` de pièces, IO sous `items` ; les IO masquées (`visible: "false"`) y sont, les interrupteurs
+  muraux le sont par défaut. `get_state` prend `items: [ids]` et omet les inconnus.
+- **États** : `light_dimmer` = pourcentage (0 = éteint) ; `light_rgb` = `#RRGGBB` ou `"0"` éteint ; `shutter` = `"true"`
+  ouvert / `"false"` fermé, qui ne bascule qu'à la fin de la course ; **`shutter_smart` = `"up|down|stop N"`, N = %
+  FERMÉ (0 ouvert)**, avec un événement **à chaque pour cent** pendant la course (espacé à 2 s ici) ; `switch_long` 1/2
+  et `switch3` 1/2/3, remis à 0 après 250 ms **sans événement**.
+- Une sortie MQTT (lampe, variateur) ne change d'état qu'au retour du broker : sans retour, `set_state` répond
+  `success` mais rien ne bouge. Les IO internes (`InternalBool`…) émettent tout de suite.
+- Hypothèse non vérifiable sans matériel : un interrupteur de style `door` vaut `true` quand la porte est **ouverte**
+  (convention des capteurs binaires) ; publié 0 (`OPENING_SENSOR_STATE.OPEN`) dans Gladys.
+- Choix de conception : un appareil Gladys par IO, identifiant tiré de l'id de l'IO ; scénario = `button/push` ;
+  sorties analogiques et `var_int` non importées (action de scène générique) ; déclencheur `io_changed` sans les
+  mesures ni les positions intermédiaires d'un volet, plafonné à 60 par minute.
